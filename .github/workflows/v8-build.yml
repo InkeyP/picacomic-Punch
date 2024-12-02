@@ -26,7 +26,7 @@ jobs:
       # Step 3: Clone and set up depot_tools
       - name: Clone depot_tools
         run: |
-          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git $HOME
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git $HOME/depot_tools
           echo 'export PATH=$PATH:"$HOME/depot_tools"' >> $GITHUB_ENV
           source $GITHUB_ENV
           fetch v8
