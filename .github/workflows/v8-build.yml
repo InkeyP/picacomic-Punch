@@ -1,0 +1,68 @@
+name: Build V8
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-v8:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Step 2: Set up proxy (if needed for your environment)
+      - name: Configure Proxy (Optional)
+        run: |
+          echo "Acquire::http::Proxy \"http://<your-proxy>:<port>/\";" | sudo tee -a /etc/apt/apt.conf.d/99proxy
+          echo "Acquire::https::Proxy \"http://<your-proxy>:<port>/\";" | sudo tee -a /etc/apt/apt.conf.d/99proxy
+
+      # Step 3: Install dependencies
+      - name: Install Required Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip git build-essential curl
+
+      # Step 4: Clone and set up depot_tools
+      - name: Clone depot_tools
+        run: |
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          echo 'export PATH=$PATH:"$HOME/depot_tools"' >> $GITHUB_ENV
+        shell: bash
+
+      # Step 5: Clone and bootstrap Ninja build system
+      - name: Clone and Set Up Ninja
+        run: |
+          git clone https://github.com/ninja-build/ninja.git
+          cd ninja && ./configure.py --bootstrap && cd ..
+          echo 'export PATH=$PATH:"$HOME/ninja"' >> $GITHUB_ENV
+        shell: bash
+
+      # Step 6: Reload Environment Variables
+      - name: Reload Environment Variables
+        run: source $GITHUB_ENV
+        shell: bash
+
+      # Step 7: Fetch V8 source code
+      - name: Fetch V8 Source Code
+        run: |
+          fetch v8
+          cd v8 && gclient sync
+
+      # Step 8: Configure V8 build
+      - name: Configure V8 Build
+        run: |
+          cd v8
+          tools/dev/v8gen.py x64.debug
+
+      # Step 9: Build V8 using Ninja
+      - name: Build V8
+        run: |
+          cd v8
+          ninja -C out.gn/x64.debug
