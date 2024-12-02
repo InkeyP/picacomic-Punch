@@ -26,30 +26,11 @@ jobs:
       # Step 3: Clone and set up depot_tools
       - name: Clone depot_tools
         run: |
-          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+          git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git $HOME
           echo 'export PATH=$PATH:"$HOME/depot_tools"' >> $GITHUB_ENV
-        shell: bash
-
-      # Step 4: Reload Environment Variables
-      - name: Reload Environment Variables
-        run: source $GITHUB_ENV
-        shell: bash
-
-      # Step 5: Fetch V8 source code and sync dependencies
-      - name: Fetch V8 Source Code
-        run: |
+          source $GITHUB_ENV
           fetch v8
           cd v8
           gclient sync
-
-      # Step 6: Configure V8 build
-      - name: Configure V8 Build
-        run: |
-          cd v8
           tools/dev/v8gen.py x64.debug
-
-      # Step 7: Build V8 using Ninja
-      - name: Build V8
-        run: |
-          cd v8
           ninja -C out.gn/x64.debug
